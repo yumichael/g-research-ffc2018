@@ -218,7 +218,7 @@ def max_drawdown(a):
 
 def hist(a, weighted=False, *args, **kw):
     if weighted:
-        kw['weights'] = a
+        kw['weights'] = np.abs(a)
     return a.hist(*args, **kw)
 
 
