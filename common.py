@@ -1,4 +1,5 @@
 top_dir = __file__[:__file__.rindex('/') + 1]
+big_dir = '/big/data/'
  
 import notebook_import_hook
 notebook_import_hook.attach()
@@ -19,3 +20,4 @@ notebook_import_hook.attach()
 from globals import *
 from helper import *
 from data.given import *
+from data.submit import submit
