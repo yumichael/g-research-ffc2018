@@ -100,6 +100,22 @@ def signed_coefficients_mod_sign(n):
         c[i] = 1 - b - b
     return c
 
+
+@memoized
+def sum_to_k_positive_coefficients(n, k):
+    if n == 0:
+        return np.zeros([1, 0], dtype=np.int8)
+    s = n ** k
+    c = []
+    basis = np.eye(n, dtype=np.int8)
+    for i in range(s):
+        b = np.asarray([(i // n ** j) % n for j in range(k)[::-1]], dtype=np.int8)
+        if (np.diff(b) < 0).any():
+            continue
+        c.append(basis[b].sum(axis=0))
+    return np.stack(c, axis=0).astype(np.int8, copy=False) if c else np.ndarray([0, n], dtype=np.int8)
+
+
 @memoized
 def one_minus_one_signed_sums_mod_sign(n, k):
     guys = []
@@ -112,7 +128,7 @@ def one_minus_one_signed_sums_mod_sign(n, k):
                 seen.add(tuple(guy))
                 seen.add(tuple(-guy))
                 guys.append(guy)
-    return np.stack(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.stack(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
@@ -153,19 +169,26 @@ def zero_sum_consecutive_coefficients_mod_sign(n, w, h):
             guy[i_list[-1]:] = 0
             if sum(guy) == 0:
                 guys.append(guy)
-    return np.stack(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.stack(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
 def up_to_w_consecutive_coefficients_mod_sign(n, w, h):
     guys = [consecutive_coefficients_mod_sign(n, w_, h) for w_ in range(1, w + 1)]
-    return np.concatenate(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.concatenate(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
+
+
+@memoized
+def up_to_sum_k_positive_coefficients(n, k, duplicates=True):
+    guys = np.concatenate([sum_to_k_positive_coefficients(n, k_) for k_ in range(1, k + 1)], axis=0)
+    return np.stack([b for b in guys if duplicates or functools.reduce(math.gcd, b) == 1],
+                    axis=0).astype(np.int8, copy=False) if prod(guys.shape) else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
 def up_to_w_zero_sum_consecutive_coefficients_mod_sign(n, w, h):
     guys = [zero_sum_consecutive_coefficients_mod_sign(n, w_, h) for w_ in range(1, w + 1)]
-    return np.concatenate(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.concatenate(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
@@ -182,7 +205,7 @@ def consecutive_1s_signed_sums_mod_sign(n, m):
                 guys.append(guy)
     if guys and not guys[-1].any():
         guys = guys[:-1]
-    return np.stack(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.stack(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
@@ -195,7 +218,7 @@ def consecutive_1s_signed_sums_duplicates_mod_sign(n, m):
             guys.append(guy)
     if guys and not guys[-1].any():
         guys = guys[:-1]
-    return np.stack(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.stack(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
@@ -207,7 +230,7 @@ def up_to_m_signed_coefficients_mod_sign(n, m):
             for sc in signed_coefficients_mod_sign(k):
                 guy = sum(x * b for b, x in zip(sc, x_list))
                 guys.append(guy)
-    return np.stack(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.stack(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
@@ -269,7 +292,7 @@ def up_to_m_zero_mean_int_coefficients_mod_sign(n, m, h, duplicates=True):
             for sc in zero_mean_int_coefficients_mod_sign(k, h, duplicates):
                 guy = sum(x * b for b, x in zip(sc, x_list))
                 guys.append(guy)
-    return np.stack(guys, axis=0) if guys else np.ndarray([0, n], dtype=np.int8)
+    return np.stack(guys, axis=0).astype(np.int8, copy=False) if guys else np.ndarray([0, n], dtype=np.int8)
 
 
 @memoized
@@ -281,7 +304,7 @@ def up_to_m_int_coefficients_mod_sign(n, m, h, duplicates=True):
             for sc in int_coefficients_mod_sign(k, h, duplicates):
                 guy = sum(x * b for b, x in zip(sc, x_list))
                 guys.append(guy)
-    return np.stack(guys, axis=0)
+    return np.stack(guys, axis=0).astype(np.int8, copy=False)
 
 
 def trico(n):
@@ -322,6 +345,9 @@ class combos(metaclass=O):
     komoco = one_minus_one_signed_sums_mod_sign
     wcintco = up_to_w_consecutive_coefficients_mod_sign
     wcintco0 = up_to_w_zero_sum_consecutive_coefficients_mod_sign
+    hposco = sum_to_k_positive_coefficients
+    kposco = lambda n, k: up_to_sum_k_positive_coefficients(n, k, False)
+    kposcox = lambda n, k: up_to_sum_k_positive_coefficients(n, k, True)
 
 
 if __name__ == "__main__":
