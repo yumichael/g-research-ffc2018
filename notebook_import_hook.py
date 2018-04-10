@@ -2,7 +2,7 @@ import io, os, sys, types
 from IPython import get_ipython
 from nbformat import read
 from IPython.core.interactiveshell import InteractiveShell
-from common import top_dir
+top_dir = __file__[:__file__.rindex('/') + 1]
 
 def find_notebook(fullname, path=None):
     """find a notebook, given its fully qualified name and an optional path
@@ -85,4 +85,7 @@ class NotebookFinder(object):
         return self.loaders[key]
     
 def attach():
+    if hasattr(attach, '_done') and attach._done:
+        return
     sys.meta_path.append(NotebookFinder())
+    attach._done = True

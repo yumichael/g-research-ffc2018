@@ -326,8 +326,20 @@ class name(metaclass=O):
         return ''.join(str(i) for i in pos) + '/' + ''.join(str(i) for i in neg)
 
 
+def union(*cbs):
+    assert all(cb.shape[1] == cbs[0].shape[1] for cb in cbs)
+    seen, the = set(), []
+    for cb in cbs:
+        for c in cb:
+            if tuple(c) not in seen:
+                the.append(c)
+                seen.update([tuple(c), tuple(-c)])
+    return np.stack(the)
+    
+    
 class combos(metaclass=O):
     name = name
+    union = union
     c1co = consecutive_1s #(n)
     ksgnc1co = consecutive_1s_signed_sums_mod_sign #(n, k=<how many c1 arrays to combine>)
     ksgnc1cox = consecutive_1s_signed_sums_duplicates_mod_sign #(n, k=<how many c1 arrays to combine>)

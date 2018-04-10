@@ -1,8 +1,8 @@
-top_dir = __file__[:__file__.rindex('/') + 1]
-big_dir = '/big/'
- 
 import notebook_import_hook
 notebook_import_hook.attach()
+from notebook_import_hook import top_dir
+big_dir = '/big/'
+
 
 '''
 > from sys import path
