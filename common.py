@@ -1,6 +1,8 @@
 import notebook_import_hook
 notebook_import_hook.attach()
 from notebook_import_hook import top_dir
+
+#! directory of big save files
 big_dir = '/big/'
 
 

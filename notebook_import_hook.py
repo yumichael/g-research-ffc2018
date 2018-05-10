@@ -2,8 +2,11 @@ import io, os, sys, types
 from IPython import get_ipython
 from nbformat import read
 from IPython.core.interactiveshell import InteractiveShell
+
+#! globally available string of the path of the top level
 top_dir = __file__[:__file__.rindex('/') + 1]
 
+#!-- helpers
 def find_notebook(fullname, path=None):
     """find a notebook, given its fully qualified name and an optional path
 
@@ -83,7 +86,9 @@ class NotebookFinder(object):
         if key not in self.loaders:
             self.loaders[key] = NotebookLoader(path)
         return self.loaders[key]
+#--
     
+#! main useful function. call it to enable importing Jupyter notebooks
 def attach():
     if hasattr(attach, '_done') and attach._done:
         return
